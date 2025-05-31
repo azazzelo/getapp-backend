@@ -1,15 +1,15 @@
 package ru.getapp
 
-import org.jetbrains.exposed.dao.id.LongIdTable
+import kotlinx.coroutines.Dispatchers
+import org.jetbrains.exposed.dao.id.LongIdTable // <<< УБЕДИСЬ, ЧТО ЭТОТ ИМПОРТ ЕСТЬ
+import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.time
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.jetbrains.exposed.sql.transactions.transaction
-import kotlinx.coroutines.Dispatchers
-import org.jetbrains.exposed.sql.ReferenceOption // Этот импорт уже должен быть
 
 object UsersTable : Table("users") {
     val login = varchar("login", 50)
@@ -21,10 +21,11 @@ object UsersTable : Table("users") {
     override val primaryKey = PrimaryKey(login)
 }
 
-object SlotsTable : LongIdTable("slots") { // Убрали "id" как второй параметр, Exposed сам создаст колонку "id"
-    // val id - уже неявно определена из LongIdTable
+// ВАЖНО: SlotsTable наследуется от LongIdTable
+object SlotsTable : LongIdTable("slots") { // "id" будет именем колонки по умолчанию
+
     val trainerLogin = varchar("trainer_login", 50)
-        .references(UsersTable.login, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE) // ИСПРАВЛЕНИЕ
+        .references(UsersTable.login, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
     val description = text("description")
     val slotDate = date("slot_date")
     val startTime = time("start_time")
@@ -34,12 +35,12 @@ object SlotsTable : LongIdTable("slots") { // Убрали "id" как втор�
 }
 
 object SlotsClientsTable : Table("slots_clients") {
-    val slotId = long("slot_id")
-        .references(SlotsTable.id, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE) // ИСПРАВЛЕНИЕ
+    val slotId = long("slot_id").references(SlotsTable.id, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
     val clientLogin = varchar("client_login", 50)
-        .references(UsersTable.login, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE) // ИСПРАВЛЕНИЕ
+        .references(UsersTable.login, onDelete = ReferenceOption.CASCADE, onUpdate = ReferenceOption.CASCADE)
     override val primaryKey = PrimaryKey(slotId, clientLogin)
 }
+
 
 object DatabaseFactory {
     fun init() {
@@ -50,6 +51,7 @@ object DatabaseFactory {
             password = DatabaseConfig.DB_PASSWORD
         )
         transaction {
+            // Убери UserNotificationsTable, если она не используется
             SchemaUtils.createMissingTablesAndColumns(UsersTable, SlotsTable, SlotsClientsTable)
         }
     }

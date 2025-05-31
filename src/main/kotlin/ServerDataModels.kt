@@ -2,6 +2,7 @@ package ru.getapp
 
 import kotlinx.serialization.Serializable
 
+// --- Модели для аутентификации и базового пользователя ---
 @Serializable
 data class LoginRequest(
     val login: String,
@@ -12,61 +13,77 @@ data class LoginRequest(
 data class UserApiResponse(
     val login: String,
     val name: String,
-    val role: String
+    val role: String,
+    val specialties: String? = null,
+    val bio: String? = null
 )
 
+// --- Модели для Слотов ---
 @Serializable
 data class SlotApiResponse(
     val id: Long,
     val trainerLogin: String,
     val description: String,
-    val slotDate: String,           // Формат "YYYY-MM-DD"
-    val startTime: String,          // Формат "HH:MM:SS" (рекомендуемый для API)
-    val endTime: String,            // Формат "HH:MM:SS" (рекомендуемый для API)
+    val slotDate: String,    // "yyyy-MM-dd"
+    val startTime: String,   // "HH:mm:ss"
+    val endTime: String,     // "HH:mm:ss"
     val quantity: Int,
-    val trainerName: String? = null // Имя тренера, если получено через JOIN
+    val trainerName: String? = null
 )
 
 @Serializable
 data class CreateSlotRequest(
     val trainerLogin: String,
     val description: String,
-    val slotDate: String,           // Ожидаемый формат "YYYY-MM-DD"
-    val startTime: String,          // Ожидаемый формат "HH:mm" или "HH:mm:ss"
-    val endTime: String,            // Ожидаемый формат "HH:mm" или "HH:mm:ss"
+    val slotDate: String,    // "yyyy-MM-dd"
+    val startTime: String,   // "HH:mm" или "HH:mm:ss"
+    val endTime: String,     // "HH:mm" или "HH:mm:ss"
     val quantity: Int
 )
 
 @Serializable
-data class UpdateSlotRequest( // Для обновления слота, все поля опциональны
-    val description: String? = null,
-    val slotDate: String? = null,
-    val startTime: String? = null,
-    val endTime: String? = null,
-    val quantity: Int? = null
+data class UpdateSlotRequest(
+    val description: String?,
+    val slotDate: String?,   // "yyyy-MM-dd"
+    val startTime: String?,  // "HH:mm" или "HH:mm:ss"
+    val endTime: String?,    // "HH:mm" или "HH:mm:ss"
+    val quantity: Int?
+)
+
+// --- Модели для Записей на слоты ---
+@Serializable
+data class SlotBookingClientRequest(
+    val clientLogin: String
 )
 
 @Serializable
-data class SlotBookingRequest( // Для тела запроса POST /slots/{slotId}/book
-    val clientLogin: String    // slotId будет параметром пути
-)
-
-@Serializable
-data class BookingResponse( // Общий ответ для операций бронирования/отмены
+data class BookingConfirmationResponse(
     val message: String,
-    val slotId: Long? = null,
-    val clientLogin: String? = null
-)
-
-@Serializable
-data class SlotClientEntry( // Для представления записи из таблицы slots_clients
     val slotId: Long,
     val clientLogin: String
 )
 
-// Если понадобятся модели для админской части (CRUD для users, slots, slots_clients)
-// Можно будет добавить их сюда или создать отдельные.
-// Например, для создания пользователя админом (включая пароль):
+@Serializable
+data class SlotClientEntry(
+    val slotId: Long,
+    val clientLogin: String
+)
+
+@Serializable
+data class AdminSlotClientRequest(
+    val slotId: Long,
+    val clientLogin: String
+)
+
+// --- Модели для Профиля Пользователя (обновление самим пользователем) ---
+@Serializable
+data class UserProfileUpdateRequest(
+    val name: String,
+    val bio: String?,
+    val specialties: String?
+)
+
+// --- Модели для Администрирования Пользователей ---
 @Serializable
 data class AdminCreateUserRequest(
     val login: String,
@@ -77,12 +94,21 @@ data class AdminCreateUserRequest(
     val bio: String? = null
 )
 
-// Для обновления пользователя админом:
 @Serializable
 data class AdminUpdateUserRequest(
     val name: String?,
-    val role: String?, // Админ может менять роль (кроме своей)
+    val role: String?,
     val specialties: String?,
     val bio: String?,
-    val password: String? = null // Опционально для смены пароля
+    val password: String? = null
 )
+
+// --- Общие модели для ответов ---
+@Serializable
+data class SimpleMessageResponse(val message: String)
+
+@Serializable
+data class CreateResponse(val message: String, val id: Long) // Используется для ответа при создании слота
+
+@Serializable
+data class ErrorResponse(val error: String)

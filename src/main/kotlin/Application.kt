@@ -1,9 +1,4 @@
-package ru.getapp // Или твой актуальный group ID
-
-// Убедись, что все эти импорты корректны для твоей структуры
-// import com.example.db.DatabaseFactory // Если DatabaseFactory в том же пакете, этот импорт не нужен
-// import com.example.plugins.configureRouting // Если Routing.kt в том же пакете, то просто configureRouting()
-// import com.example.plugins.configureSerialization // Аналогично
+package ru.getapp
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -16,6 +11,6 @@ fun main() {
 
 fun Application.module() {
     DatabaseFactory.init()
-    configureSerialization() // Функция должна быть доступна (в том же пакете или импортирована)
-    configureRouting()     // Функция должна быть доступна
+    configureSerialization()
+    configureRouting()
 }
